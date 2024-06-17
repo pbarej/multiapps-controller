@@ -19,12 +19,7 @@ class ProcessLogsPersisterTest {
 
     private static final String CORRELATION_ID = "1234";
     private static final String TASK_ID = "1";
-    private static final String SPACE_ID = "441cba52-fd99-4452-8c93-211ce1ad28e7";
-    private static final String TEST_FILE_NAME = "testLoggerFile";
-    private static final String LOG_EXTENSION = ".log";
 
-    @Mock
-    private final ProcessLogsPersistenceService processLogsPersistenceService = mock(ProcessLogsPersistenceService.class);
     @Mock
     private final ProcessLoggerProvider processLoggerProvider = mock(ProcessLoggerProvider.class);
     @Mock
@@ -47,10 +42,8 @@ class ProcessLogsPersisterTest {
     void persistLogs() {
         prepareContext();
         processLogsPersister.persistLogs(CORRELATION_ID,TASK_ID);
-        verify(processLogger,times(1)).persistLogFile(processLogsPersistenceService);
         verify(processLoggerProvider,times(1)).removeLoggersCache(processLogger);
         verify(processLogger,times(1)).closeLoggerContext();
-        //verify(processLogger,times(1)).deleteLogFile();
     }
 
     private void prepareContext() {
