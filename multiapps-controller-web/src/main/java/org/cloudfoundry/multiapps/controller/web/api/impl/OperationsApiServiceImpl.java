@@ -143,12 +143,12 @@ public class OperationsApiServiceImpl implements OperationsApiService {
             operationsApiServiceAuditLog.logGetOperationLogContent(SecurityContextUtil.getUsername(), spaceGuid, operationId, logId);
             String content = logsService.getOperationLog(spaceGuid, operationId, logId);
 
-            if (content == null || content.isEmpty() ||  content.isBlank()) {
+            if (content == null || content.isEmpty() || content.isBlank()) {
                 content = logsService.getLogContent(spaceGuid, operationId, logId);
             }
 
             return ResponseEntity.ok()
-                    .body(content);
+                                 .body(content);
         } catch (FileStorageException e) {
             throw new ContentException(e, e.getMessage());
         }

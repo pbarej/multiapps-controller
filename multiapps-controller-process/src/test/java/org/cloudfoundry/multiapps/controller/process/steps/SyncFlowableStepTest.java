@@ -1,16 +1,13 @@
 package org.cloudfoundry.multiapps.controller.process.steps;
 
-import static java.lang.Boolean.TRUE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import com.sap.cloudfoundry.client.facade.CloudOperationException;
 import com.sap.cloudfoundry.client.facade.domain.ImmutableCloudMetadata;
 import org.cloudfoundry.client.v3.Metadata;
 import org.cloudfoundry.multiapps.common.test.Tester;
@@ -21,7 +18,6 @@ import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersistenceService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.flowable.FlowableFacade;
 import org.cloudfoundry.multiapps.controller.process.util.MockDelegateExecution;
@@ -45,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sap.cloudfoundry.client.facade.CloudControllerClient;
-import org.springframework.http.HttpStatus;
 
 public abstract class SyncFlowableStepTest<T extends SyncFlowableStep> {
 
@@ -89,8 +84,6 @@ public abstract class SyncFlowableStepTest<T extends SyncFlowableStep> {
     protected final ProcessLoggerProvider processLoggerProvider = Mockito.spy(ProcessLoggerProvider.class);
     @Mock
     protected ProcessHelper processHelper;
-    @InjectMocks
-    protected ProcessLogsPersister processLogsPersister = Mockito.spy(ProcessLogsPersister.class);
 
     protected ProcessContext context;
     @InjectMocks

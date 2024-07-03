@@ -7,7 +7,6 @@ import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.flowable.FlowableFacade;
@@ -28,7 +27,6 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
     private final ProgressMessageService progressMessageService;
     private final StepLogger.Factory stepLoggerFactory;
     private final ProcessLoggerProvider processLoggerProvider;
-    private final ProcessLogsPersister processLogsPersister;
     private final HistoricOperationEventService historicOperationEventService;
     private final FlowableFacade flowableFacade;
     protected final ApplicationConfiguration configuration;
@@ -58,8 +56,6 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
         } catch (Exception e) {
             logException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
             throw new SLException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
-        } finally {
-            finalizeLogs(execution);
         }
     }
 
@@ -94,12 +90,6 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
 
     protected ProcessLogger getProcessLogger() {
         return getStepLogger().getProcessLogger();
-    }
-
-    protected void finalizeLogs(DelegateExecution execution) {
-        String correlationId = VariableHandling.get(execution, Variables.CORRELATION_ID);
-        String taskId = VariableHandling.get(execution, Variables.TASK_ID);
-        processLogsPersister.persistLogs(correlationId, taskId);
     }
 
     protected StepLogger getStepLogger() {

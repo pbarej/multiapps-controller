@@ -52,7 +52,6 @@ public class ProcessLogsPersistenceService extends DatabaseFileService {
         List<OperationLogEntry> operationLogEntries = listOperationLogsBySpaceAndOperationId(space, operationId);
         return operationLogEntries.stream()
                                   .map(OperationLogEntry::getOperationLogName)
-                                  .distinct()
                                   .collect(Collectors.toList());
     }
 
@@ -68,9 +67,6 @@ public class ProcessLogsPersistenceService extends DatabaseFileService {
 
     public String getLogContent(String space, String operationId, String logName) throws FileStorageException {
         List<FileEntry> logFiles = listFiles(space, operationId, logName);
-        if (logFiles.isEmpty()) {
-            throw new NotFoundException(MessageFormat.format(Messages.ERROR_LOG_FILE_NOT_FOUND, logName, operationId, space));
-        }
 
         StringBuilder builder = new StringBuilder();
         for (FileEntry file : logFiles) {
@@ -82,9 +78,6 @@ public class ProcessLogsPersistenceService extends DatabaseFileService {
 
     public String getOperationLog(String space, String operationId, String logId) throws FileStorageException {
         List<OperationLogEntry> operationLogs = listOperationLogs(space, operationId, logId);
-        if (operationLogs.isEmpty()) {
-            throw new NotFoundException(MessageFormat.format(Messages.ERROR_LOG_NOT_FOUND, logId, operationId, space));
-        }
 
         StringBuilder builder = new StringBuilder();
         for (OperationLogEntry operationLog : operationLogs) {

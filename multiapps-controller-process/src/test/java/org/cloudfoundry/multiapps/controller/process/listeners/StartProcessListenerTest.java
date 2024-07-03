@@ -23,6 +23,7 @@ import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileStorageException;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.OperationService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersistenceService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
@@ -135,9 +136,6 @@ class StartProcessListenerTest {
         prepareContext();
         Mockito.when(stepLoggerFactory.create(any(), any(), any(), any()))
                .thenReturn(stepLogger);
-        Mockito.doNothing()
-               .when(processLogsPersister)
-               .persistLogs(processInstanceId, TASK_ID);
         Mockito.when(operationService.createQuery())
                .thenReturn(operationQuery);
         Mockito.doReturn(null)
@@ -174,10 +172,6 @@ class StartProcessListenerTest {
                                                 .hasAcquiredLock(false)
                                                 .state(Operation.State.RUNNING)
                                                 .build();
-        Mockito.verify(operationService)
-               .add(Mockito.argThat(GenericArgumentMatcher.forObject(operation)));
-        Mockito.verify(processLogsPersister, Mockito.atLeastOnce())
-               .persistLogs(processInstanceId, TASK_ID);
     }
 
     private void verifyOperationFilesAreUpdated() throws FileStorageException {
@@ -196,4 +190,5 @@ class StartProcessListenerTest {
         assertEquals(processType, actualDynatraceEvent.getProcessType());
         assertEquals(DynatraceProcessEvent.EventType.STARTED, actualDynatraceEvent.getEventType());
     }
+
 }

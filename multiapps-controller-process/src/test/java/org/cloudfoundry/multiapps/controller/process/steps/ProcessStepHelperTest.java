@@ -13,7 +13,6 @@ import org.cloudfoundry.multiapps.controller.core.model.ErrorType;
 import org.cloudfoundry.multiapps.controller.persistence.model.HistoricOperationEvent;
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableHistoricOperationEvent;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.util.ProcessHelper;
@@ -43,8 +42,6 @@ class ProcessStepHelperTest {
     @Mock
     private ProgressMessageService progressMessageService;
     @Mock
-    private ProcessLogsPersister processLogsPersister;
-    @Mock
     private StepLogger stepLogger;
     @Mock
     private ProcessEngineConfiguration processEngineConfiguration;
@@ -65,7 +62,6 @@ class ProcessStepHelperTest {
         processStepHelper = ImmutableProcessStepHelper.builder()
                                                       .progressMessageService(progressMessageService)
                                                       .stepLogger(stepLogger)
-                                                      .processLogsPersister(processLogsPersister)
                                                       .processEngineConfiguration(processEngineConfiguration)
                                                       .processHelper(processHelper)
                                                       .build();
@@ -80,8 +76,6 @@ class ProcessStepHelperTest {
                .thenReturn(flowElement);
 
         processStepHelper.postExecuteStep(context, StepPhase.DONE);
-        Mockito.verify(processLogsPersister)
-               .persistLogs(CORRELATION_GUID, TASK_GUID);
         Mockito.verify(context)
                .setVariable(Variables.STEP_EXECUTION, StepPhase.DONE.toString());
     }

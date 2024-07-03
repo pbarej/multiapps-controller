@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -62,16 +60,19 @@ public class ProcessLoggerProvider {
         this.dataSource = dataSource;
     }
 
-    public ProcessLogger getLogger(DelegateExecution execution) {
+    public ProcessLoggerProvider() {
+        this.dataSource = null;
+    }
 
+    public ProcessLogger getLogger(DelegateExecution execution) {
         return getLogger(execution, DEFAULT_LOG_NAME);
     }
 
-    public ProcessLogger getLogger(DelegateExecution context, String logName) {
-        return getLogger(context, logName, loggerContextDel -> PatternLayout.newBuilder()
-                                                                            .withPattern(LOG_LAYOUT)
-                                                                            .withConfiguration(loggerContextDel.getConfiguration())
-                                                                            .build());
+    public ProcessLogger getLogger(DelegateExecution execution, String logName) {
+        return getLogger(execution, logName, loggerContextDel -> PatternLayout.newBuilder()
+                                                                              .withPattern(LOG_LAYOUT)
+                                                                              .withConfiguration(loggerContextDel.getConfiguration())
+                                                                              .build());
     }
 
     public ProcessLogger getLogger(DelegateExecution execution, String logName,
@@ -81,19 +82,12 @@ public class ProcessLoggerProvider {
         String spaceId = getSpaceId(execution);
         String activityId = getTaskId(execution);
         String logNameWithExtension = logName + LOG_FILE_EXTENSION;
+        AbstractStringLayout layout = layoutCreatorFunction.apply(loggerContext);
         if (correlationId == null || activityId == null) {
             return new NullProcessLogger(spaceId, execution.getProcessInstanceId(), activityId);
         }
         return loggersCache.computeIfAbsent(name, (String loggerName) -> createProcessLogger(spaceId, correlationId, activityId, loggerName,
-                                                                                             logNameWithExtension, layoutCreatorFunction));
-    }
-
-    private OperationLogEntry createOperationLogEntry(String operationId, String space, String operationLogName) {
-        return ImmutableOperationLogEntry.builder()
-                                         .operationId(operationId)
-                                         .space(space)
-                                         .operationLogName(operationLogName)
-                                         .build();
+                                                                                             logNameWithExtension, layout));
     }
 
     private String getLoggerName(DelegateExecution execution, String logName) {
@@ -109,12 +103,9 @@ public class ProcessLoggerProvider {
         return taskId != null ? taskId : execution.getCurrentActivityId();
     }
 
-    private synchronized ProcessLogger createProcessLogger(String spaceId, String correlationId, String activityId, String loggerName,
-                                                           String logName,
-                                                           Function<LoggerContext, AbstractStringLayout> layoutCreatorFunction) {
-        OperationLogEntry operationLogEntry = createOperationLogEntry(correlationId, spaceId, logName);
-
-        LogDbAppender logDbAppender = new LogDbAppender(operationLogEntry, loggerName, layoutCreatorFunction.apply(loggerContext));
+    private ProcessLogger createProcessLogger(String spaceId, String correlationId, String activityId, String loggerName, String logName,
+                                              AbstractStringLayout patternLayout) {
+        LogDbAppender logDbAppender = new LogDbAppender(correlationId, spaceId, logName, loggerName, patternLayout);
         attachFileAppender(loggerName, logDbAppender);
 
         Logger logger = loggerContext.getLogger(loggerName);
@@ -123,6 +114,13 @@ public class ProcessLoggerProvider {
                      .addLoggerAppender(logger, logDbAppender);
         loggerContext.updateLoggers();
         return new ProcessLogger(loggerContext, logger, spaceId, correlationId, activityId, logDbAppender);
+    }
+
+    private PatternLayout createPatternLayout() {
+        return PatternLayout.newBuilder()
+                            .withPattern(LOG_LAYOUT)
+                            .withConfiguration(loggerContext.getConfiguration())
+                            .build();
     }
 
     private void attachFileAppender(String loggerName, LogDbAppender logDbAppender) {
@@ -186,55 +184,48 @@ public class ProcessLoggerProvider {
     public class LogDbAppender extends AbstractAppender {
 
         private static final String SPRINGFRAMEWORK_CLASS_NAME = "springframework";
-        private final OperationLogEntry operationLogEntry;
+        private final String spaceId;
+        private final String correlationId;
+        private final String logName;
 
-        public LogDbAppender(OperationLogEntry operationLogEntry, String name, Layout<? extends Serializable> layout) {
-            super(name, DEBUG_FILTER, layout, Boolean.FALSE, null);
-            this.operationLogEntry = operationLogEntry;
+        public LogDbAppender(String correlationId, String spaceId, String logName, String loggerName,
+                             Layout<? extends Serializable> layout) {
+            super(loggerName, DEBUG_FILTER, layout, Boolean.FALSE, null);
+            this.spaceId = spaceId;
+            this.logName = logName;
+            this.correlationId = correlationId;
             start();
         }
 
         @Override
         public void append(LogEvent event) {
+            if (event.getSource()
+                     .getClassName()
+                     .contains(SPRINGFRAMEWORK_CLASS_NAME)
+                || dataSource == null) {
+                return;
+            }
             try (Connection connection = dataSource.getConnection();
                 PreparedStatement statement = connection.prepareStatement(SqlOperationLogQueryProvider.INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
                 String formatterMessage = getLayout().toSerializable(event)
                                                      .toString();
 
-                if (event.getSource()
-                         .getClassName()
-                         .contains(SPRINGFRAMEWORK_CLASS_NAME)) {
-                    return;
-                }
+                OperationLogEntry enhancedWithMessageOperationLogEntry = ImmutableOperationLogEntry.builder()
+                                                                                                   .space(spaceId)
+                                                                                                   .operationLogName(logName)
+                                                                                                   .operationId(correlationId)
+                                                                                                   .id(UUID.randomUUID()
+                                                                                                           .toString())
+                                                                                                   .modified(LocalDateTime.now())
+                                                                                                   .operationLog(formatterMessage)
+                                                                                                   .build();
 
-                OperationLogEntry enhancedWithMessageOperationLogEntry = ImmutableOperationLogEntry.copyOf(operationLogEntry)
-                                                                                                   .withId(UUID.randomUUID()
-                                                                                                               .toString())
-                                                                                                   .withModified(LocalDateTime.now())
-                                                                                                   .withOperationLog(formatterMessage);
-
-                enhanceInsertOperationLogQuery(enhancedWithMessageOperationLogEntry, statement);
+                SqlOperationLogQueryProvider.enhanceInsertOperationLogQuery(enhancedWithMessageOperationLogEntry, statement);
                 statement.executeUpdate();
             } catch (SQLException e) {
                 throw new OperationLogStorageException(Messages.FAILED_TO_SAVE_OPERATION_LOG_IN_DATABASE, e);
             }
         }
 
-        private void enhanceInsertOperationLogQuery(OperationLogEntry operationLogEntry, PreparedStatement statement) throws SQLException {
-            statement.setString(1, operationLogEntry.getId()
-                                                    .toString());
-            statement.setString(2, operationLogEntry.getSpace());
-
-            if (operationLogEntry.getNamespace() == null) {
-                statement.setNull(3, Types.NULL);
-            } else {
-                statement.setString(3, operationLogEntry.getNamespace());
-            }
-
-            statement.setTimestamp(4, Timestamp.valueOf(operationLogEntry.getModified()));
-            statement.setString(5, operationLogEntry.getOperationId());
-            statement.setString(6, operationLogEntry.getOperationLog());
-            statement.setString(7, operationLogEntry.getOperationLogName());
-        }
     }
 }

@@ -9,6 +9,9 @@
             <tableExists tableName="process_log"/>
         </preConditions>
         <addColumn tableName="process_log">
+            <column name="operation_log_name" type="VARCHAR(255)"/>
+        </addColumn>
+        <addColumn tableName="process_log">
             <column name="id" type="VARCHAR(255)"/>
         </addColumn>
         <sql>
