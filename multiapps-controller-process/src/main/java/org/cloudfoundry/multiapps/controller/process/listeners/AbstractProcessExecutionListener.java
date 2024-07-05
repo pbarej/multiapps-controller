@@ -35,13 +35,12 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
 
     @Inject
     protected AbstractProcessExecutionListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                               ProcessLoggerProvider processLoggerProvider, ProcessLogsPersister processLogsPersister,
+                                               ProcessLoggerProvider processLoggerProvider,
                                                HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                                ApplicationConfiguration configuration) {
         this.progressMessageService = progressMessageService;
         this.stepLoggerFactory = stepLoggerFactory;
         this.processLoggerProvider = processLoggerProvider;
-        this.processLogsPersister = processLogsPersister;
         this.historicOperationEventService = historicOperationEventService;
         this.flowableFacade = flowableFacade;
         this.configuration = configuration;

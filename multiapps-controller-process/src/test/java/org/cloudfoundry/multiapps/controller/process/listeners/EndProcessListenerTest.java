@@ -7,7 +7,6 @@ import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatraceProcessEvent;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatracePublisher;
@@ -42,8 +41,6 @@ class EndProcessListenerTest {
     @Mock
     private ProcessLoggerProvider processLoggerProvider;
     @Mock
-    private ProcessLogsPersister processLogsPersister;
-    @Mock
     private HistoricOperationEventService historicOperationEventService;
     @Mock
     private FlowableFacade flowableFacade;
@@ -58,7 +55,6 @@ class EndProcessListenerTest {
         EndProcessListener endProcessListener = new EndProcessListener(progressMessageService,
                                                                        stepLoggerFactory,
                                                                        processLoggerProvider,
-                                                                       processLogsPersister,
                                                                        historicOperationEventService,
                                                                        flowableFacade,
                                                                        configuration,

@@ -13,7 +13,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.cloudfoundry.multiapps.common.SLException;
-import org.cloudfoundry.multiapps.common.test.GenericArgumentMatcher;
 import org.cloudfoundry.multiapps.controller.api.model.ImmutableOperation;
 import org.cloudfoundry.multiapps.controller.api.model.Operation;
 import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
@@ -23,9 +22,7 @@ import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileStorageException;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.OperationService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersistenceService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatraceProcessEvent;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatracePublisher;
@@ -59,8 +56,6 @@ class StartProcessListenerTest {
     private static final String APP_ARCHIVE_IDS = "436c97b3-36f2-46b1-b418-755ccf250dd8,756ff7aa-069f-4e0f-959f-0297c80b9417";
     private static final String EXT_DESCRIPTOR_IDS = "d1626c5f-783c-447f-bc4a-d76fa754a5f5,d69fbc83-b27e-40f4-ac53-924cf6af60c4";
     private final DelegateExecution execution = MockDelegateExecution.createSpyInstance();
-    @Spy
-    private final ProcessLogsPersister processLogsPersister = new ProcessLogsPersister();
     private final Supplier<ZonedDateTime> currentTimeSupplier = () -> START_TIME;
     private String processInstanceId;
     private ProcessType processType;
@@ -108,7 +103,6 @@ class StartProcessListenerTest {
         listener = new StartProcessListener(progressMessageService,
                                             stepLoggerFactory,
                                             processLoggerProvider,
-                                            processLogsPersister,
                                             historicOperationEventService,
                                             flowableFacade,
                                             configuration,

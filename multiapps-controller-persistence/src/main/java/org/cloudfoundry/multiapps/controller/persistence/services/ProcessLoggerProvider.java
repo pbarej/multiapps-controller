@@ -1,9 +1,6 @@
 package org.cloudfoundry.multiapps.controller.persistence.services;
 
 import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
@@ -205,27 +202,20 @@ public class ProcessLoggerProvider {
                 || dataSource == null) {
                 return;
             }
-            try (Connection connection = dataSource.getConnection();
-                PreparedStatement statement = connection.prepareStatement(SqlOperationLogQueryProvider.INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
-                String formatterMessage = getLayout().toSerializable(event)
-                                                     .toString();
+            String formatterMessage = getLayout().toSerializable(event)
+                                                 .toString();
 
-                OperationLogEntry enhancedWithMessageOperationLogEntry = ImmutableOperationLogEntry.builder()
-                                                                                                   .space(spaceId)
-                                                                                                   .operationLogName(logName)
-                                                                                                   .operationId(correlationId)
-                                                                                                   .id(UUID.randomUUID()
-                                                                                                           .toString())
-                                                                                                   .modified(LocalDateTime.now())
-                                                                                                   .operationLog(formatterMessage)
-                                                                                                   .build();
+            OperationLogEntry enhancedWithMessageOperationLogEntry = ImmutableOperationLogEntry.builder()
+                                                                                               .space(spaceId)
+                                                                                               .operationLogName(logName)
+                                                                                               .operationId(correlationId)
+                                                                                               .id(UUID.randomUUID()
+                                                                                                       .toString())
+                                                                                               .modified(LocalDateTime.now())
+                                                                                               .operationLog(formatterMessage)
+                                                                                               .build();
 
-                SqlOperationLogQueryProvider.enhanceInsertOperationLogQuery(enhancedWithMessageOperationLogEntry, statement);
-                statement.executeUpdate();
-            } catch (SQLException e) {
-                throw new OperationLogStorageException(Messages.FAILED_TO_SAVE_OPERATION_LOG_IN_DATABASE, e);
-            }
+            SqlOperationLogQueryProvider.saveLogInDatabase(enhancedWithMessageOperationLogEntry, dataSource);
         }
-
     }
 }

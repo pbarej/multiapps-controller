@@ -6,7 +6,6 @@ import javax.inject.Named;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.flowable.FlowableFacade;
@@ -20,13 +19,12 @@ public class LeaveTestingPhaseListener extends AbstractProcessExecutionListener 
 
     @Inject
     protected LeaveTestingPhaseListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                        ProcessLoggerProvider processLoggerProvider, ProcessLogsPersister processLogsPersister,
+                                        ProcessLoggerProvider processLoggerProvider,
                                         HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                         ApplicationConfiguration configuration) {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
-              processLogsPersister,
               historicOperationEventService,
               flowableFacade,
               configuration);
