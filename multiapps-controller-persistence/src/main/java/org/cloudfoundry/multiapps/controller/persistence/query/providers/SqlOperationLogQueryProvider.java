@@ -28,8 +28,8 @@ public class SqlOperationLogQueryProvider {
     private static final String SELECT_LOGS_BY_SPACE_ID_AND_NAME = "SELECT DISTINCT ID, OPERATION_LOG, OPERATION_LOG_NAME, MODIFIED FROM process_log WHERE SPACE=? AND OPERATION_ID=? ORDER BY MODIFIED ASC";
 
     public static void saveLogInDatabase(OperationLogEntry operationLogEntry, DataSource dataSource) {
-        try (PreparedStatement statement = dataSource.getConnection()
-                                                     .prepareStatement(INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
 
             statement.setString(1, operationLogEntry.getId());
             statement.setString(2, operationLogEntry.getSpace());
@@ -45,9 +45,9 @@ public class SqlOperationLogQueryProvider {
             statement.setString(6, operationLogEntry.getOperationLog());
             statement.setString(7, operationLogEntry.getOperationLogName());
 
-            statement.executeQuery();
+            statement.executeUpdate();
         } catch (SQLException e) {
-            throw new OperationLogStorageException(Messages.FAILED_TO_SAVE_OPERATION_LOG_IN_DATABASE, e);
+            throw new OperationLogStorageException(e.getMessage(), e.getCause());
         }
     }
 

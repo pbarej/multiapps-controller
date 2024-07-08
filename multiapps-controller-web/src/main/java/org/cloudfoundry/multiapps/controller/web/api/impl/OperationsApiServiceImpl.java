@@ -11,9 +11,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -122,7 +124,8 @@ public class OperationsApiServiceImpl implements OperationsApiService {
             operationsApiServiceAuditLog.logGetOperationLogs(SecurityContextUtil.getUsername(), spaceGuid, operationId);
             getOperationByOperationGuidAndSpaceGuid(operationId, spaceGuid);
             List<String> logIds = logsService.getLogNames(spaceGuid, operationId);
-            if (logIds.isEmpty()) {
+            if (logIds.get(0) == null) {
+
                 logIds = logsService.getLogNamesBackwardsCompatible(spaceGuid, operationId);
             }
             List<Log> logs = logIds.stream()
