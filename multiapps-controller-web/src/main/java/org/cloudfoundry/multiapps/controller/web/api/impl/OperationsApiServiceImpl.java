@@ -124,7 +124,7 @@ public class OperationsApiServiceImpl implements OperationsApiService {
             operationsApiServiceAuditLog.logGetOperationLogs(SecurityContextUtil.getUsername(), spaceGuid, operationId);
             getOperationByOperationGuidAndSpaceGuid(operationId, spaceGuid);
             List<String> logIds = logsService.getLogNames(spaceGuid, operationId);
-            if (logIds.get(0) == null) {
+            if (logIds.isEmpty() || logIds.get(0) == null) {
 
                 logIds = logsService.getLogNamesBackwardsCompatible(spaceGuid, operationId);
             }
