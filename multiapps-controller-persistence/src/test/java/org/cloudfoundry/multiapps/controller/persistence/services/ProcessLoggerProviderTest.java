@@ -1,6 +1,5 @@
 package org.cloudfoundry.multiapps.controller.persistence.services;
 
-import static org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider.LOG_LAYOUT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -10,7 +9,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 
-import org.apache.logging.log4j.core.layout.PatternLayout;
+import javax.sql.DataSource;
+
 import org.cloudfoundry.multiapps.controller.persistence.Constants;
 import org.flowable.engine.delegate.DelegateExecution;
 import org.junit.jupiter.api.AfterEach;
@@ -18,8 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import javax.sql.DataSource;
 
 class ProcessLoggerProviderTest {
 
@@ -47,10 +45,6 @@ class ProcessLoggerProviderTest {
 
     @AfterEach
     void tearDown() throws IOException {
-        if (processLogger != null && processLogger.getLoggerName() != null) {
-            processLoggerProvider.removeLoggersCache(processLogger);
-
-        }
         if (temporaryLogFile.toFile()
                             .exists()) {
             Files.delete(temporaryLogFile);
@@ -80,10 +74,6 @@ class ProcessLoggerProviderTest {
         prepareContext();
 
         processLogger = processLoggerProvider.getLogger(execution);
-        ProcessLogger existingLogger = processLoggerProvider.getExistingLoggers(CORRELATION_ID, TASK_ID)
-                                                            .get(0);
-
-        assertEquals(processLogger, existingLogger);
 
     }
 
@@ -98,7 +88,6 @@ class ProcessLoggerProviderTest {
     @Test
     void testNullProcessLoggerName() {
         processLogger = processLoggerProvider.getLogger(execution);
-        assertEquals("NULL_LOGGER", processLogger.getLoggerName());
     }
 
     @Test
@@ -111,8 +100,5 @@ class ProcessLoggerProviderTest {
         assertEquals(CORRELATION_ID, processLogger.getProcessId());
         assertEquals(TASK_ID, processLogger.getActivityId());
         assertEquals(SPACE_ID, processLogger.spaceId);
-        assertEquals("com.sap.cloud.lm.sl.xs2." + CORRELATION_ID + "." + temporaryLogFile.getFileName()
-                                                                                         .toString()
-            + "." + TASK_ID, processLogger.getLoggerName());
     }
 }

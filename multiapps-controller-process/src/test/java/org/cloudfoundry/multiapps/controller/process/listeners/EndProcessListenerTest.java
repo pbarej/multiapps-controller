@@ -6,6 +6,7 @@ import org.cloudfoundry.multiapps.controller.api.model.Operation;
 import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatraceProcessEvent;
@@ -25,15 +26,13 @@ import org.mockito.Mockito;
 
 class EndProcessListenerTest {
 
+    private final static String SPACE_ID = "9ba1dfc7-9c2c-40d5-8bf9-fd04fa7a1722";
+    private final static String MTA_ID = "my-mta";
+    private final static ProcessType PROCESS_TYPE = ProcessType.DEPLOY;
     private final OperationInFinalStateHandler eventHandler = Mockito.mock(OperationInFinalStateHandler.class);
     private final DynatracePublisher dynatracePublisher = Mockito.mock(DynatracePublisher.class);
     private final ProcessTypeParser processTypeParser = Mockito.mock(ProcessTypeParser.class);
     private final DelegateExecution execution = MockDelegateExecution.createSpyInstance();
-
-    private final static String SPACE_ID = "9ba1dfc7-9c2c-40d5-8bf9-fd04fa7a1722";
-    private final static String MTA_ID = "my-mta";
-    private final static ProcessType PROCESS_TYPE = ProcessType.DEPLOY;
-
     @Mock
     private ProgressMessageService progressMessageService;
     @Mock
@@ -46,6 +45,8 @@ class EndProcessListenerTest {
     private FlowableFacade flowableFacade;
     @Mock
     private ApplicationConfiguration configuration;
+    @Mock
+    private ProcessLoggerCleaner processLoggerCleaner;
 
     @Mock
     private StepLogger stepLogger;
@@ -55,6 +56,7 @@ class EndProcessListenerTest {
         EndProcessListener endProcessListener = new EndProcessListener(progressMessageService,
                                                                        stepLoggerFactory,
                                                                        processLoggerProvider,
+                                                                       processLoggerCleaner,
                                                                        historicOperationEventService,
                                                                        flowableFacade,
                                                                        configuration,

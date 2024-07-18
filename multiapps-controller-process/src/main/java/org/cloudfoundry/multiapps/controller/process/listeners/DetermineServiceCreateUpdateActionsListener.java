@@ -8,6 +8,7 @@ import javax.inject.Named;
 import org.cloudfoundry.multiapps.controller.client.lib.domain.CloudServiceInstanceExtended;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Constants;
@@ -26,11 +27,13 @@ public class DetermineServiceCreateUpdateActionsListener extends AbstractProcess
     @Inject
     protected DetermineServiceCreateUpdateActionsListener(ProgressMessageService progressMessageService,
                                                           StepLogger.Factory stepLoggerFactory, ProcessLoggerProvider processLoggerProvider,
+                                                          ProcessLoggerCleaner processLoggerCleaner,
                                                           HistoricOperationEventService historicOperationEventService,
                                                           FlowableFacade flowableFacade, ApplicationConfiguration configuration) {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
+              processLoggerCleaner,
               historicOperationEventService,
               flowableFacade,
               configuration);

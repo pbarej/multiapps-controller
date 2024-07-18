@@ -6,6 +6,7 @@ import org.cloudfoundry.multiapps.common.SLException;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
@@ -20,7 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class AbstractProcessExecutionListener implements ExecutionListener {
 
-    private static final long serialVersionUID = 1L;
+     private static final long serialVersionUID = 1L;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractProcessExecutionListener.class);
 
@@ -29,18 +30,20 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
     private final ProcessLoggerProvider processLoggerProvider;
     private final HistoricOperationEventService historicOperationEventService;
     private final FlowableFacade flowableFacade;
+    private final ProcessLoggerCleaner processLoggerCleaner;
     protected final ApplicationConfiguration configuration;
 
     private StepLogger stepLogger;
 
     @Inject
     protected AbstractProcessExecutionListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                               ProcessLoggerProvider processLoggerProvider,
+                                               ProcessLoggerProvider processLoggerProvider, ProcessLoggerCleaner processLoggerCleaner,
                                                HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                                ApplicationConfiguration configuration) {
         this.progressMessageService = progressMessageService;
         this.stepLoggerFactory = stepLoggerFactory;
         this.processLoggerProvider = processLoggerProvider;
+        this.processLoggerCleaner = processLoggerCleaner;
         this.historicOperationEventService = historicOperationEventService;
         this.flowableFacade = flowableFacade;
         this.configuration = configuration;
@@ -55,6 +58,8 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
         } catch (Exception e) {
             logException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
             throw new SLException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
+        } finally {
+            finalizeProcessLoggers(execution);
         }
     }
 
@@ -80,6 +85,12 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
         if (taskId == null) {
             VariableHandling.set(execution, Variables.TASK_ID, execution.getCurrentActivityId());
         }
+    }
+
+    protected void finalizeProcessLoggers(DelegateExecution execution) {
+        String correlationId = VariableHandling.get(execution, Variables.CORRELATION_ID);
+        String taskId = VariableHandling.get(execution, Variables.TASK_ID);
+        processLoggerCleaner.scheduleAppenderForClean(correlationId, taskId);
     }
 
     protected void logException(Exception e, String message) {

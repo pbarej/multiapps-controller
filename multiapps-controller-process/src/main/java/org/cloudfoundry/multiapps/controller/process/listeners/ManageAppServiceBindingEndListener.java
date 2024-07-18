@@ -7,6 +7,7 @@ import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
 import org.cloudfoundry.multiapps.controller.client.lib.domain.CloudApplicationExtended;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Constants;
@@ -26,12 +27,13 @@ public class ManageAppServiceBindingEndListener extends AbstractProcessExecution
 
     @Inject
     protected ManageAppServiceBindingEndListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                                 ProcessLoggerProvider processLoggerProvider,
+                                                 ProcessLoggerProvider processLoggerProvider, ProcessLoggerCleaner processLoggerCleaner,
                                                  HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                                  ApplicationConfiguration configuration, ProcessTypeParser processTypeParser) {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
+              processLoggerCleaner,
               historicOperationEventService,
               flowableFacade,
               configuration);

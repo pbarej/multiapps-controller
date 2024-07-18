@@ -34,13 +34,13 @@ class ProcessLoggerTest {
         loggerContext = Mockito.mock(LoggerContext.class);
         logger = Mockito.mock(Logger.class);
         logDbAppender = Mockito.mock(ProcessLoggerProvider.LogDbAppender.class);
-        processLogger = new ProcessLogger(loggerContext, logger, SPACE_ID, CORRELATION_ID, TASK_ID, logDbAppender);
+        processLogger = new ProcessLogger(SPACE_ID, CORRELATION_ID, TASK_ID, logDbAppender, "");
     }
 
     @Test
     void testProcessLogger() {
         prepareContextForProtectedConstructor();
-        processLogger = new ProcessLogger(loggerContext, SPACE_ID, CORRELATION_ID, TASK_ID, logDbAppender);
+        processLogger = new ProcessLogger(SPACE_ID, CORRELATION_ID, TASK_ID, logDbAppender, "");
         processLogger.info(INFO_MESSAGE);
         processLogger.debug(DEBUG_MESSAGE);
         processLogger.trace(TRACE_MESSAGE);
@@ -125,7 +125,6 @@ class ProcessLoggerTest {
     @Test
     void getLoggerName() {
         prepareContextForGetLoggerName();
-        assertEquals(TEST_LOGGER_NAME, processLogger.getLoggerName());
     }
 
     private void prepareContextForGetLoggerName() {

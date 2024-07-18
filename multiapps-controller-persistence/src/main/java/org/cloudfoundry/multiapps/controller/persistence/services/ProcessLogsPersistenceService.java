@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.inject.Named;
 
 import org.apache.commons.io.IOUtils;
-import org.cloudfoundry.multiapps.common.NotFoundException;
 import org.cloudfoundry.multiapps.common.util.DigestHelper;
 import org.cloudfoundry.multiapps.controller.persistence.Constants;
 import org.cloudfoundry.multiapps.controller.persistence.DataSourceWithDialect;
@@ -52,6 +51,7 @@ public class ProcessLogsPersistenceService extends DatabaseFileService {
         List<OperationLogEntry> operationLogEntries = listOperationLogsBySpaceAndOperationId(space, operationId);
         return operationLogEntries.stream()
                                   .map(OperationLogEntry::getOperationLogName)
+                                  .distinct()
                                   .collect(Collectors.toList());
     }
 

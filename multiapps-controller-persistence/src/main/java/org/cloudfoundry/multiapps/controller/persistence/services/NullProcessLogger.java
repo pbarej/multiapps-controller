@@ -15,7 +15,7 @@ public class NullProcessLogger extends ProcessLogger {
     private static final String NULL_LOGGER_NAME = "NULL_LOGGER";
 
     public NullProcessLogger(String spaceId, String processId, String activityId) {
-        super(LoggerContext.getContext(false), spaceId, processId, activityId, null);
+        super(spaceId, processId, activityId, null, "");
     }
 
     @Override
@@ -51,11 +51,6 @@ public class NullProcessLogger extends ProcessLogger {
     @Override
     public void warn(Object message, Throwable t) {
         logNullCorrelationId();
-    }
-
-    @Override
-    public String getLoggerName() {
-        return NULL_LOGGER_NAME;
     }
 
     public void logNullCorrelationId() {

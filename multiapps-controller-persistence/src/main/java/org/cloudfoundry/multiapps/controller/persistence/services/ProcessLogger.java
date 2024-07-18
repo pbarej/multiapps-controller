@@ -1,67 +1,76 @@
 package org.cloudfoundry.multiapps.controller.persistence.services;
 
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.cloudfoundry.multiapps.controller.persistence.Messages;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.impl.Log4jLogEvent;
+import org.apache.logging.log4j.message.Message;
+import org.apache.logging.log4j.message.ObjectMessage;
 
 public class ProcessLogger {
 
     protected final String spaceId;
     protected final String processId;
     protected final String activityId;
-    private Logger logger;
-    private LoggerContext loggerContext;
+    protected final String logName;
     private ProcessLoggerProvider.LogDbAppender logDbAppender;
 
-    public ProcessLogger(LoggerContext loggerContext, Logger logger, String spaceId, String processId, String activityId,
-                         ProcessLoggerProvider.LogDbAppender logDbAppender) {
-        this.logger = logger;
-        this.spaceId = spaceId;
-        this.processId = processId;
-        this.activityId = activityId;
-        this.loggerContext = loggerContext;
-        this.logDbAppender = logDbAppender;
-    }
-
-    protected ProcessLogger(LoggerContext loggerContext, String spaceId, String processId, String activityId, ProcessLoggerProvider.LogDbAppender logDbAppender) {
-        this.loggerContext = loggerContext;
-        this.logger = loggerContext.getRootLogger();
+    public ProcessLogger(String spaceId, String processId, String activityId,
+                         ProcessLoggerProvider.LogDbAppender logDbAppender, String logName) {
         this.spaceId = spaceId;
         this.processId = processId;
         this.activityId = activityId;
         this.logDbAppender = logDbAppender;
+        this.logName = logName;
     }
 
     public void info(Object message) {
-        logger.info(message);
+        logDbAppender.append(createEvent(message, "info"));
+        logDbAppender.stop();
     }
 
     public void debug(Object message) {
-        logger.debug(message);
+        logDbAppender.append(createEvent(message, "debug"));
+        logDbAppender.stop();
     }
 
     public void debug(Object message, Throwable throwable) {
-        logger.debug(message, throwable);
+        logDbAppender.append(createEvent(message, "debug", throwable));
+        logDbAppender.stop();
     }
 
     public void error(Object message) {
-        logger.error(message);
+        logDbAppender.append(createEvent(message, "error"));
+        logDbAppender.stop();
     }
 
     public void error(Object message, Throwable t) {
-        logger.error(message, t);
+        logDbAppender.append(createEvent(message, "error", t));
+        logDbAppender.stop();
     }
 
     public void trace(Object message) {
-        logger.trace(message);
+        logDbAppender.append(createEvent(message, "trace"));
+        logDbAppender.stop();
     }
 
     public void warn(Object message) {
-        logger.warn(message);
+        logDbAppender.append(createEvent(message, "warn"));
+        logDbAppender.stop();
     }
 
     public void warn(Object message, Throwable t) {
-        logger.warn(message, t);
+        logDbAppender.append(createEvent(message, "warn", t));
+        logDbAppender.stop();
+    }
+
+    private LogEvent createEvent(Object message, String methodName) {
+        return createEvent(message, methodName, null);
+    }
+
+    private LogEvent createEvent(Object message, String methodName, Throwable t) {
+        Message message1 = new ObjectMessage(message);
+        StackTraceElement b = new StackTraceElement(null, null, null, ProcessLoggerProvider.class.getName(), methodName, null, 48);
+        return new Log4jLogEvent(logName, null, null, b,Level.INFO, message1, null, t);
     }
 
     public String getProcessId() {
@@ -72,21 +81,11 @@ public class ProcessLogger {
         return this.activityId;
     }
 
-    public String getLoggerName() {
-        return this.logger.getName();
+    public ProcessLoggerProvider.LogDbAppender getAppender() {
+        return logDbAppender;
     }
 
+
     public void closeLoggerContext() {
-        try {
-            loggerContext.getRootLogger()
-                         .removeAppender(logDbAppender);
-            loggerContext.getConfiguration()
-                         .getAppenders()
-                         .remove(logDbAppender.getName());
-            logDbAppender.stop();
-            loggerContext.updateLoggers();
-        } catch (Exception exception) {
-            logger.error(Messages.COULD_NOT_CLOSE_LOGGER_CONTEXT, exception);
-        }
     }
 }

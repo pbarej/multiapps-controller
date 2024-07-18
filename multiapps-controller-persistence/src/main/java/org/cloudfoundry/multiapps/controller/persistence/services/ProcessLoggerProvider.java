@@ -2,14 +2,8 @@ package org.cloudfoundry.multiapps.controller.persistence.services;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,19 +11,15 @@ import javax.sql.DataSource;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Appender;
 import org.apache.logging.log4j.core.Filter;
 import org.apache.logging.log4j.core.Layout;
 import org.apache.logging.log4j.core.LogEvent;
-import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.filter.LevelMatchFilter;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.cloudfoundry.multiapps.controller.persistence.Constants;
-import org.cloudfoundry.multiapps.controller.persistence.Messages;
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.query.providers.SqlOperationLogQueryProvider;
@@ -48,9 +38,11 @@ public class ProcessLoggerProvider {
     private static final String DEFAULT_LOG_NAME = "OPERATION";
     private static final String LOG_FILE_EXTENSION = ".log";
     private final DataSource dataSource;
-
-    private final Map<String, ProcessLogger> loggersCache = new ConcurrentHashMap<>();
     private final LoggerContext loggerContext = (LoggerContext) LogManager.getContext(false);
+    private final PatternLayout patternLayout = PatternLayout.newBuilder()
+                                                             .withPattern(LOG_LAYOUT)
+                                                             .withConfiguration(loggerContext.getConfiguration())
+                                                             .build();
 
     @Inject
     public ProcessLoggerProvider(DataSource dataSource) {
@@ -66,10 +58,7 @@ public class ProcessLoggerProvider {
     }
 
     public ProcessLogger getLogger(DelegateExecution execution, String logName) {
-        return getLogger(execution, logName, loggerContextDel -> PatternLayout.newBuilder()
-                                                                              .withPattern(LOG_LAYOUT)
-                                                                              .withConfiguration(loggerContextDel.getConfiguration())
-                                                                              .build());
+        return getLogger(execution, logName, loggerContextDel -> patternLayout);
     }
 
     public ProcessLogger getLogger(DelegateExecution execution, String logName,
@@ -83,8 +72,8 @@ public class ProcessLoggerProvider {
         if (correlationId == null || activityId == null) {
             return new NullProcessLogger(spaceId, execution.getProcessInstanceId(), activityId);
         }
-        return loggersCache.computeIfAbsent(name, (String loggerName) -> createProcessLogger(spaceId, correlationId, activityId, loggerName,
-                                                                                             logNameWithExtension, layout));
+        ProcessLogger processLogger = createProcessLogger(spaceId, correlationId, activityId, name, logNameWithExtension, layout);
+        return processLogger;
     }
 
     private String getLoggerName(DelegateExecution execution, String logName) {
@@ -103,79 +92,12 @@ public class ProcessLoggerProvider {
     private ProcessLogger createProcessLogger(String spaceId, String correlationId, String activityId, String loggerName, String logName,
                                               AbstractStringLayout patternLayout) {
         LogDbAppender logDbAppender = new LogDbAppender(correlationId, spaceId, logName, loggerName, patternLayout);
-        attachFileAppender(loggerName, logDbAppender);
-
-        Logger logger = loggerContext.getLogger(loggerName);
         logDbAppender.start();
-        loggerContext.getConfiguration()
-                     .addLoggerAppender(logger, logDbAppender);
-        loggerContext.updateLoggers();
-        return new ProcessLogger(loggerContext, logger, spaceId, correlationId, activityId, logDbAppender);
-    }
-
-    private PatternLayout createPatternLayout() {
-        return PatternLayout.newBuilder()
-                            .withPattern(LOG_LAYOUT)
-                            .withConfiguration(loggerContext.getConfiguration())
-                            .build();
-    }
-
-    private void attachFileAppender(String loggerName, LogDbAppender logDbAppender) {
-        loggerContext.addFilter(DEBUG_FILTER);
-        LoggerConfig loggerConfig = getLoggerConfig(loggerContext, loggerName);
-        setLoggerConfigLoggingLevel(loggerConfig, Level.DEBUG);
-        addAppenderToLoggerConfig(loggerConfig, logDbAppender, Level.DEBUG);
-        disableConsoleLogging(loggerContext);
-    }
-
-    private LoggerConfig getLoggerConfig(LoggerContext loggerContext, String loggerName) {
-        return LoggerConfig.newBuilder()
-                           .withConfig(loggerContext.getConfiguration())
-                           .withLoggerName(loggerName)
-                           .build();
-    }
-
-    private void setLoggerConfigLoggingLevel(LoggerConfig loggerConfig, Level level) {
-        loggerConfig.setLevel(level != null ? level : Level.DEBUG);
-    }
-
-    private void addAppenderToLoggerConfig(LoggerConfig loggerConfig, LogDbAppender logDbAppender, Level level) {
-        loggerConfig.addAppender(logDbAppender, level != null ? level : Level.DEBUG, DEBUG_FILTER);
-    }
-
-    private void disableConsoleLogging(LoggerContext loggerContext) {
-        for (Appender appender : getAllAppenders(loggerContext)) {
-            if (appender.getName()
-                        .contains(Messages.DEFAULT_CONSOLE)) {
-                loggerContext.getRootLogger()
-                             .removeAppender(appender);
-            }
-        }
-    }
-
-    private Collection<Appender> getAllAppenders(LoggerContext loggerContext) {
-        return Collections.unmodifiableCollection(loggerContext.getRootLogger()
-                                                               .getAppenders()
-                                                               .values());
+        return new ProcessLogger(spaceId, correlationId, activityId, logDbAppender, loggerName);
     }
 
     private String getSpaceId(DelegateExecution execution) {
         return (String) execution.getVariable(Constants.VARIABLE_NAME_SPACE_ID);
-    }
-
-    public List<ProcessLogger> getExistingLoggers(String processId, String activityId) {
-        return loggersCache.values()
-                           .stream()
-                           .filter(logger -> hasLoggerSpecificProcessIdAndActivityId(processId, activityId, logger))
-                           .collect(Collectors.toList());
-    }
-
-    private boolean hasLoggerSpecificProcessIdAndActivityId(String processId, String activityId, ProcessLogger logger) {
-        return processId.equals(logger.getProcessId()) && activityId.equals(logger.getActivityId());
-    }
-
-    public void removeLoggersCache(ProcessLogger processLogger) {
-        loggersCache.remove(processLogger.getLoggerName());
     }
 
     public class LogDbAppender extends AbstractAppender {
@@ -191,7 +113,6 @@ public class ProcessLoggerProvider {
             this.spaceId = spaceId;
             this.logName = logName;
             this.correlationId = correlationId;
-            start();
         }
 
         @Override

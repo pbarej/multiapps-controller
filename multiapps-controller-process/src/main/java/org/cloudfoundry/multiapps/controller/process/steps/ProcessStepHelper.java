@@ -11,6 +11,7 @@ import org.cloudfoundry.multiapps.controller.persistence.model.HistoricOperation
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableProgressMessage;
 import org.cloudfoundry.multiapps.controller.persistence.model.ProgressMessage.ProgressMessageType;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.util.ProcessHelper;
@@ -28,11 +29,19 @@ public abstract class ProcessStepHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ProcessStepHelper.class);
 
+    public static boolean isProcessAborted(List<HistoricOperationEvent> historicOperationEvents) {
+        return historicOperationEvents.stream()
+                                      .map(HistoricOperationEvent::getType)
+                                      .anyMatch(HistoricOperationEvent.EventType.ABORT_EXECUTED::equals);
+    }
+
     protected void postExecuteStep(ProcessContext context, StepPhase state) {
         logDebug(MessageFormat.format(Messages.STEP_FINISHED, context.getExecution()
                                                                      .getCurrentFlowElement()
                                                                      .getName()));
 
+        getProcessLoggerCleaner().scheduleAppenderForClean(context.getVariable(Variables.CORRELATION_ID),
+                                                           context.getVariable(Variables.TASK_ID));
         context.setVariable(Variables.STEP_EXECUTION, state.toString());
     }
 
@@ -120,15 +129,11 @@ public abstract class ProcessStepHelper {
         }
     }
 
-    public static boolean isProcessAborted(List<HistoricOperationEvent> historicOperationEvents) {
-        return historicOperationEvents.stream()
-                                      .map(HistoricOperationEvent::getType)
-                                      .anyMatch(HistoricOperationEvent.EventType.ABORT_EXECUTED::equals);
-    }
-
     public abstract ProgressMessageService getProgressMessageService();
 
     public abstract StepLogger getStepLogger();
+
+    public abstract ProcessLoggerCleaner getProcessLoggerCleaner();
 
     public abstract ProcessEngineConfiguration getProcessEngineConfiguration();
 
