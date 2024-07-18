@@ -7,7 +7,6 @@ import org.cloudfoundry.multiapps.controller.api.model.Operation;
 import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatraceProcessEvent;
@@ -32,14 +31,13 @@ public class EndProcessListener extends AbstractProcessExecutionListener {
 
     @Inject
     public EndProcessListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                              ProcessLoggerProvider processLoggerProvider, ProcessLoggerCleaner processLoggerCleaner,
+                              ProcessLoggerProvider processLoggerProvider,
                               HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                               ApplicationConfiguration configuration, OperationInFinalStateHandler eventHandler,
                               DynatracePublisher dynatracePublisher, ProcessTypeParser processTypeParser) {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
-              processLoggerCleaner,
               historicOperationEventService,
               flowableFacade,
               configuration);

@@ -12,7 +12,6 @@ import org.cloudfoundry.multiapps.controller.core.cf.CloudControllerClientProvid
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.core.util.LoggingUtil;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
@@ -54,8 +53,7 @@ public abstract class SyncFlowableStep implements JavaDelegate {
     private ProcessEngineConfiguration processEngineConfiguration;
     @Inject
     private ProcessLoggerProvider processLoggerProvider;
-    @Inject
-    private ProcessLoggerCleaner processLoggerCleaner;
+
     private StepLogger stepLogger;
     @Inject
     private ProcessHelper processHelper;
@@ -200,7 +198,7 @@ public abstract class SyncFlowableStep implements JavaDelegate {
             stepHelper = ImmutableProcessStepHelper.builder()
                                                    .progressMessageService(getProgressMessageService())
                                                    .stepLogger(getStepLogger())
-                                                   .processEngineConfiguration(processEngineConfiguration).processLoggerCleaner(getProcessLoggerCleaner())
+                                                   .processEngineConfiguration(processEngineConfiguration)
                                                    .processHelper(processHelper)
                                                    .build();
         }
@@ -209,10 +207,6 @@ public abstract class SyncFlowableStep implements JavaDelegate {
 
     protected ProgressMessageService getProgressMessageService() {
         return progressMessageService;
-    }
-
-    protected ProcessLoggerCleaner getProcessLoggerCleaner() {
-        return processLoggerCleaner;
     }
 
     protected String getStepErrorMessageAdditionalDescription(ProcessContext context) {

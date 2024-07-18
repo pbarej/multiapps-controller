@@ -13,9 +13,16 @@ public class NullProcessLogger extends ProcessLogger {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NullProcessLogger.class);
     private static final String NULL_LOGGER_NAME = "NULL_LOGGER";
+    private final String spaceId;
+    private final String processId;
+    private final String activityId;
+
 
     public NullProcessLogger(String spaceId, String processId, String activityId) {
-        super(spaceId, processId, activityId, null, "");
+        super(null, NULL_LOGGER_NAME);
+        this.activityId = activityId;
+        this.spaceId = spaceId;
+        this.processId = processId;
     }
 
     @Override

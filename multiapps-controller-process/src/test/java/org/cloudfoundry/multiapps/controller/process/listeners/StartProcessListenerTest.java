@@ -22,7 +22,6 @@ import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileStorageException;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.OperationService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.dynatrace.DynatraceProcessEvent;
@@ -71,8 +70,6 @@ class StartProcessListenerTest {
     @Mock
     private ProcessTypeParser processTypeParser;
     @Mock
-    private ProcessLoggerCleaner processLoggerCleaner;
-    @Mock
     private ApplicationConfiguration configuration;
     @Mock
     private DynatracePublisher dynatracePublisher;
@@ -106,7 +103,6 @@ class StartProcessListenerTest {
         listener = new StartProcessListener(progressMessageService,
                                             stepLoggerFactory,
                                             processLoggerProvider,
-                                            processLoggerCleaner,
                                             historicOperationEventService,
                                             flowableFacade,
                                             configuration,

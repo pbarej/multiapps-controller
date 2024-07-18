@@ -25,7 +25,6 @@ import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileStorageException;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.OperationService;
-import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerCleaner;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
@@ -59,7 +58,7 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
 
     @Inject
     public StartProcessListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                ProcessLoggerProvider processLoggerProvider, ProcessLoggerCleaner processLoggerCleaner,
+                                ProcessLoggerProvider processLoggerProvider,
                                 HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                 ApplicationConfiguration configuration, ProcessTypeParser processTypeParser,
                                 OperationService operationService, ProcessTypeToOperationMetadataMapper operationMetadataMapper,
@@ -67,7 +66,6 @@ public class StartProcessListener extends AbstractProcessExecutionListener {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
-              processLoggerCleaner,
               historicOperationEventService,
               flowableFacade,
               configuration);

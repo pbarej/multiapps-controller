@@ -72,8 +72,7 @@ public class ProcessLoggerProvider {
         if (correlationId == null || activityId == null) {
             return new NullProcessLogger(spaceId, execution.getProcessInstanceId(), activityId);
         }
-        ProcessLogger processLogger = createProcessLogger(spaceId, correlationId, activityId, name, logNameWithExtension, layout);
-        return processLogger;
+        return createProcessLogger(spaceId, correlationId, activityId, name, logNameWithExtension, layout);
     }
 
     private String getLoggerName(DelegateExecution execution, String logName) {
@@ -93,7 +92,7 @@ public class ProcessLoggerProvider {
                                               AbstractStringLayout patternLayout) {
         LogDbAppender logDbAppender = new LogDbAppender(correlationId, spaceId, logName, loggerName, patternLayout);
         logDbAppender.start();
-        return new ProcessLogger(spaceId, correlationId, activityId, logDbAppender, loggerName);
+        return new ProcessLogger(logDbAppender, loggerName);
     }
 
     private String getSpaceId(DelegateExecution execution) {
