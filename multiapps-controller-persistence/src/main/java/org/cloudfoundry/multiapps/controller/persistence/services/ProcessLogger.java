@@ -1,10 +1,15 @@
 package org.cloudfoundry.multiapps.controller.persistence.services;
 
+import java.time.LocalDateTime;
+
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
+import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ObjectMessage;
+import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
+import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
 
 public class ProcessLogger {
 
@@ -13,52 +18,73 @@ public class ProcessLogger {
     private static final String TRACE_METHOD_NAME = "trace";
     private static final String ERROR_METHOD_NAME = "error";
     private static final String DEBUG_METHOD_NAME = "debug";
+    private final AbstractStringLayout layout;
+    private final String activityId;
     private final String logName;
-    private final ProcessLoggerProvider.LogDbAppender logDbAppender;
+    private OperationLogEntry operationLogEntry;
+    private String logMessage;
 
-    public ProcessLogger(ProcessLoggerProvider.LogDbAppender logDbAppender, String logName) {
-        this.logDbAppender = logDbAppender;
+    public ProcessLogger(OperationLogEntry operationLogEntry, String logName, AbstractStringLayout layout, String activityId) {
+        this.operationLogEntry = operationLogEntry;
+        this.layout = layout;
+        this.activityId = activityId;
         this.logName = logName;
     }
 
     public void info(Object message) {
-        logDbAppender.append(createEvent(message, INFO_METHOD_NAME));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, INFO_METHOD_NAME);
     }
 
     public void debug(Object message) {
-        logDbAppender.append(createEvent(message, DEBUG_METHOD_NAME));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, DEBUG_METHOD_NAME);
     }
 
     public void debug(Object message, Throwable throwable) {
-        logDbAppender.append(createEvent(message, DEBUG_METHOD_NAME, throwable));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, DEBUG_METHOD_NAME, throwable);
     }
 
     public void error(Object message) {
-        logDbAppender.append(createEvent(message, ERROR_METHOD_NAME));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, ERROR_METHOD_NAME);
     }
 
     public void error(Object message, Throwable t) {
-        logDbAppender.append(createEvent(message, ERROR_METHOD_NAME, t));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, ERROR_METHOD_NAME, t);
     }
 
     public void trace(Object message) {
-        logDbAppender.append(createEvent(message, TRACE_METHOD_NAME));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, TRACE_METHOD_NAME);
     }
 
     public void warn(Object message) {
-        logDbAppender.append(createEvent(message, WARN_METHOD_NAME));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, WARN_METHOD_NAME);
     }
 
     public void warn(Object message, Throwable t) {
-        logDbAppender.append(createEvent(message, WARN_METHOD_NAME, t));
-        logDbAppender.stop();
+        addMessageAndLogTimeToOperationLogEntry(message, WARN_METHOD_NAME, t);
+    }
+
+    public String getLogMessage() {
+        return logMessage;
+    }
+
+    public AbstractStringLayout getLayout() {
+        return layout;
+    }
+
+    public String getActivityId() {
+        return activityId;
+    }
+
+    public OperationLogEntry getOperationLogEntry() {
+        return operationLogEntry;
+    }
+
+    private void addMessageAndLogTimeToOperationLogEntry(Object message, String methodName) {
+        logMessage = layout.toSerializable(createEvent(message, methodName));
+    }
+
+    private void addMessageAndLogTimeToOperationLogEntry(Object message, String methodName, Throwable t) {
+        logMessage = layout.toSerializable(createEvent(message, methodName, t));
     }
 
     private LogEvent createEvent(Object message, String methodName) {

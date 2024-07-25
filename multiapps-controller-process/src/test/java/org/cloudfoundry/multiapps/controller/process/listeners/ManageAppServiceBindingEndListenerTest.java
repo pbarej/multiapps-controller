@@ -12,6 +12,7 @@ import org.cloudfoundry.multiapps.common.util.JsonUtil;
 import org.cloudfoundry.multiapps.controller.api.model.ProcessType;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.flowable.FlowableFacade;
@@ -50,6 +51,8 @@ class ManageAppServiceBindingEndListenerTest {
     @Mock
     private FlowableFacade flowableFacade;
     @Mock
+    private ProcessLoggerPersister processLoggerPersister;
+    @Mock
     private ApplicationConfiguration configuration;
     private ManageAppServiceBindingEndListener manageAppServiceBindingEndListener;
 
@@ -60,6 +63,7 @@ class ManageAppServiceBindingEndListenerTest {
         manageAppServiceBindingEndListener = new ManageAppServiceBindingEndListener(progressMessageService,
                                                                                     stepLoggerFactory,
                                                                                     processLoggerProvider,
+                                                                                    processLoggerPersister,
                                                                                     historicOperationEventService,
                                                                                     flowableFacade,
                                                                                     configuration,

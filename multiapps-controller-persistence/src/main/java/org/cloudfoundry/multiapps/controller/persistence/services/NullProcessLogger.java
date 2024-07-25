@@ -2,6 +2,7 @@ package org.cloudfoundry.multiapps.controller.persistence.services;
 
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.FileAppender;
+import org.apache.logging.log4j.util.Strings;
 import org.cloudfoundry.multiapps.controller.persistence.Messages;
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.slf4j.Logger;
@@ -19,7 +20,7 @@ public class NullProcessLogger extends ProcessLogger {
 
 
     public NullProcessLogger(String spaceId, String processId, String activityId) {
-        super(null, NULL_LOGGER_NAME);
+        super(null, NULL_LOGGER_NAME, null, Strings.EMPTY);
         this.activityId = activityId;
         this.spaceId = spaceId;
         this.processId = processId;

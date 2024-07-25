@@ -6,6 +6,7 @@ import org.cloudfoundry.multiapps.common.SLException;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
@@ -30,17 +31,19 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
     private final HistoricOperationEventService historicOperationEventService;
     private final FlowableFacade flowableFacade;
     protected final ApplicationConfiguration configuration;
+    private final ProcessLoggerPersister processLoggerPersister;
 
     private StepLogger stepLogger;
 
     @Inject
     protected AbstractProcessExecutionListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                               ProcessLoggerProvider processLoggerProvider,
+                                               ProcessLoggerProvider processLoggerProvider, ProcessLoggerPersister processLoggerPersister,
                                                HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                                ApplicationConfiguration configuration) {
         this.progressMessageService = progressMessageService;
         this.stepLoggerFactory = stepLoggerFactory;
         this.processLoggerProvider = processLoggerProvider;
+        this.processLoggerPersister = processLoggerPersister;
         this.historicOperationEventService = historicOperationEventService;
         this.flowableFacade = flowableFacade;
         this.configuration = configuration;
@@ -55,7 +58,15 @@ public abstract class AbstractProcessExecutionListener implements ExecutionListe
         } catch (Exception e) {
             logException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
             throw new SLException(e, Messages.EXECUTION_OF_PROCESS_LISTENER_HAS_FAILED);
+        } finally {
+            finalizeLogs(execution);
         }
+    }
+
+    protected void finalizeLogs(DelegateExecution execution) {
+        String correlationId = VariableHandling.get(execution, Variables.CORRELATION_ID);
+        String taskId = VariableHandling.get(execution, Variables.TASK_ID);
+        processLoggerPersister.persistLogs(correlationId, taskId);
     }
 
     private void initializeMustHaveVariables(DelegateExecution execution) {

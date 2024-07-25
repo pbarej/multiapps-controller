@@ -39,5 +39,8 @@
         <sql>
             ALTER TABLE process_log ALTER COLUMN file_name DROP NOT NULL;
         </sql>
+        <sql>
+            ALTER TABLE process_log ALTER COLUMN file_size DROP NOT NULL;
+        </sql>
     </changeSet>
 </databaseChangeLog>

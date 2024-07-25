@@ -11,6 +11,7 @@ import org.cloudfoundry.multiapps.controller.persistence.model.HistoricOperation
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableProgressMessage;
 import org.cloudfoundry.multiapps.controller.persistence.model.ProgressMessage.ProgressMessageType;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.util.ProcessHelper;
@@ -39,6 +40,7 @@ public abstract class ProcessStepHelper {
                                                                      .getCurrentFlowElement()
                                                                      .getName()));
 
+        getProcessLoggerPersister().persistLogs(context.getVariable(Variables.CORRELATION_ID), context.getVariable(Variables.TASK_ID));
         context.setVariable(Variables.STEP_EXECUTION, state.toString());
     }
 
@@ -129,6 +131,8 @@ public abstract class ProcessStepHelper {
     public abstract ProgressMessageService getProgressMessageService();
 
     public abstract StepLogger getStepLogger();
+
+    public abstract ProcessLoggerPersister getProcessLoggerPersister();
 
     public abstract ProcessEngineConfiguration getProcessEngineConfiguration();
 

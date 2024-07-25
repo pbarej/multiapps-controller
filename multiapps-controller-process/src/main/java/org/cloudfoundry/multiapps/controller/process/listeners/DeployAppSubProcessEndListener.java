@@ -7,6 +7,7 @@ import org.cloudfoundry.multiapps.common.util.JsonUtil;
 import org.cloudfoundry.multiapps.controller.client.lib.domain.CloudApplicationExtended;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.HistoricOperationEventService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Constants;
@@ -26,12 +27,13 @@ public class DeployAppSubProcessEndListener extends AbstractProcessExecutionList
 
     @Inject
     protected DeployAppSubProcessEndListener(ProgressMessageService progressMessageService, StepLogger.Factory stepLoggerFactory,
-                                             ProcessLoggerProvider processLoggerProvider,
+                                             ProcessLoggerProvider processLoggerProvider, ProcessLoggerPersister processLoggerPersister,
                                              HistoricOperationEventService historicOperationEventService, FlowableFacade flowableFacade,
                                              ApplicationConfiguration configuration) {
         super(progressMessageService,
               stepLoggerFactory,
               processLoggerProvider,
+              processLoggerPersister,
               historicOperationEventService,
               flowableFacade,
               configuration);
