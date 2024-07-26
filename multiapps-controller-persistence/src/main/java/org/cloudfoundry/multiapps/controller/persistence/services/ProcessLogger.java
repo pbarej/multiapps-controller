@@ -1,23 +1,15 @@
 package org.cloudfoundry.multiapps.controller.persistence.services;
 
-import java.time.LocalDateTime;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.apache.logging.log4j.core.impl.Log4jLogEvent;
 import org.apache.logging.log4j.core.layout.AbstractStringLayout;
 import org.apache.logging.log4j.message.Message;
 import org.apache.logging.log4j.message.ObjectMessage;
-import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
 
 public class ProcessLogger {
 
-    private static final String INFO_METHOD_NAME = "info";
-    private static final String WARN_METHOD_NAME = "warn";
-    private static final String TRACE_METHOD_NAME = "trace";
-    private static final String ERROR_METHOD_NAME = "error";
-    private static final String DEBUG_METHOD_NAME = "debug";
     private final AbstractStringLayout layout;
     private final String activityId;
     private final String logName;
@@ -32,35 +24,35 @@ public class ProcessLogger {
     }
 
     public void info(Object message) {
-        addMessageAndLogTimeToOperationLogEntry(message, INFO_METHOD_NAME);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.INFO.getName());
     }
 
     public void debug(Object message) {
-        addMessageAndLogTimeToOperationLogEntry(message, DEBUG_METHOD_NAME);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.DEBUG.getName());
     }
 
     public void debug(Object message, Throwable throwable) {
-        addMessageAndLogTimeToOperationLogEntry(message, DEBUG_METHOD_NAME, throwable);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.DEBUG.getName(), throwable);
     }
 
     public void error(Object message) {
-        addMessageAndLogTimeToOperationLogEntry(message, ERROR_METHOD_NAME);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.ERROR.getName());
     }
 
     public void error(Object message, Throwable t) {
-        addMessageAndLogTimeToOperationLogEntry(message, ERROR_METHOD_NAME, t);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.ERROR.getName(), t);
     }
 
     public void trace(Object message) {
-        addMessageAndLogTimeToOperationLogEntry(message, TRACE_METHOD_NAME);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.TRACE.getName());
     }
 
     public void warn(Object message) {
-        addMessageAndLogTimeToOperationLogEntry(message, WARN_METHOD_NAME);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.WARN.getName());
     }
 
     public void warn(Object message, Throwable t) {
-        addMessageAndLogTimeToOperationLogEntry(message, WARN_METHOD_NAME, t);
+        addMessageAndLogTimeToOperationLogEntry(message, ProcessLoggerMethodNamesEnum.WARN.getName(), t);
     }
 
     public String getLogMessage() {

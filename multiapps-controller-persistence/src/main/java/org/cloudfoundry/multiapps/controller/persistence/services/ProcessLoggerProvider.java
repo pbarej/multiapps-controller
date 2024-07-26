@@ -101,9 +101,3 @@ public class ProcessLoggerProvider {
         return (String) execution.getVariable(Constants.VARIABLE_NAME_SPACE_ID);
     }
 }
-/*
- * String formatterMessage = getLayout().toSerializable(event) .toString();
- * SqlOperationLogQueryProvider.saveLogInDatabase(enhancedWithMessageOperationLogEntry, dataSource);
- *
- * LocalDateTime.now()
- */
