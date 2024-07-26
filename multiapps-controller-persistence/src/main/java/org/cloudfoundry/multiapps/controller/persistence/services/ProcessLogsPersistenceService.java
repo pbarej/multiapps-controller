@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.inject.Named;
+import javax.sql.DataSource;
 
 import org.apache.commons.io.IOUtils;
 import org.cloudfoundry.multiapps.common.util.DigestHelper;
@@ -117,6 +118,10 @@ public class ProcessLogsPersistenceService extends DatabaseFileService {
         } catch (FileStorageException e) {
             logger.warn(MessageFormat.format(Messages.COULD_NOT_PERSIST_LOGS_FILE, localLog.getName()), e);
         }
+    }
+
+    public void persistLog(OperationLogEntry operationLogEntry, DataSource dataSource) {
+        sqlOperationLogQueryProvider.saveLogInDatabase(operationLogEntry, dataSource);
     }
 
     private void storeLogFile(final String space, final String operationId, final String remoteLogName, File localLog)

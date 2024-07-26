@@ -11,7 +11,6 @@ import javax.sql.DataSource;
 
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
-import org.cloudfoundry.multiapps.controller.persistence.query.providers.SqlOperationLogQueryProvider;
 import org.springframework.scheduling.annotation.Async;
 
 @Named("processLoggerPersister")
@@ -19,11 +18,14 @@ public class ProcessLoggerPersister {
 
     private final ProcessLoggerProvider processLoggerProvider;
     private final DataSource dataSource;
+    private final ProcessLogsPersistenceService processLogsPersistenceService;
 
     @Inject
-    public ProcessLoggerPersister(ProcessLoggerProvider processLoggerProvider, DataSource dataSource) {
+    public ProcessLoggerPersister(ProcessLoggerProvider processLoggerProvider, DataSource dataSource,
+                                  ProcessLogsPersistenceService processLogsPersistenceService) {
         this.processLoggerProvider = processLoggerProvider;
         this.dataSource = dataSource;
+        this.processLogsPersistenceService = processLogsPersistenceService;
     }
 
     @Async("asyncExecutor")
@@ -54,8 +56,7 @@ public class ProcessLoggerPersister {
                                                                             .withOperationLogName(processLogsMessage.getKey())
                                                                             .withOperationLog(processLogsMessage.toString())
                                                                             .withModified(LocalDateTime.now());
-            SqlOperationLogQueryProvider.saveLogInDatabase(operationLogEntry, dataSource);
-
+            processLogsPersistenceService.persistLog(operationLogEntry, dataSource);
         }
     }
 }

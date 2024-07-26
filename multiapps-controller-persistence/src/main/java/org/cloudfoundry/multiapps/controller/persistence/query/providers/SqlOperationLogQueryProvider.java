@@ -27,7 +27,7 @@ public class SqlOperationLogQueryProvider {
     private static final String SELECT_LOGS_BY_SPACE_ID_OPERATION_ID_AND_OPERATION_LOG_NAME = "SELECT ID, OPERATION_LOG, OPERATION_LOG_NAME FROM process_log WHERE SPACE=? AND OPERATION_ID=? AND OPERATION_LOG_NAME=? ORDER BY MODIFIED ASC";
     private static final String SELECT_LOGS_BY_SPACE_ID_AND_NAME = "SELECT DISTINCT ID, OPERATION_LOG, OPERATION_LOG_NAME, MODIFIED FROM process_log WHERE SPACE=? AND OPERATION_ID=? ORDER BY MODIFIED ASC";
 
-    public static void saveLogInDatabase(OperationLogEntry operationLogEntry, DataSource dataSource) {
+    public void saveLogInDatabase(OperationLogEntry operationLogEntry, DataSource dataSource) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
 
