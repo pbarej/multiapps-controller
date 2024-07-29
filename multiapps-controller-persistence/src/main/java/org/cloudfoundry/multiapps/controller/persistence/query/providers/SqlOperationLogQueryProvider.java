@@ -9,13 +9,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sql.DataSource;
-
-import org.cloudfoundry.multiapps.controller.persistence.Messages;
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.query.SqlQuery;
-import org.cloudfoundry.multiapps.controller.persistence.services.OperationLogStorageException;
 import org.cloudfoundry.multiapps.controller.persistence.util.JdbcUtil;
 
 public class SqlOperationLogQueryProvider {
@@ -27,28 +23,30 @@ public class SqlOperationLogQueryProvider {
     private static final String SELECT_LOGS_BY_SPACE_ID_OPERATION_ID_AND_OPERATION_LOG_NAME = "SELECT ID, OPERATION_LOG, OPERATION_LOG_NAME FROM process_log WHERE SPACE=? AND OPERATION_ID=? AND OPERATION_LOG_NAME=? ORDER BY MODIFIED ASC";
     private static final String SELECT_LOGS_BY_SPACE_ID_AND_NAME = "SELECT DISTINCT ID, OPERATION_LOG, OPERATION_LOG_NAME, MODIFIED FROM process_log WHERE SPACE=? AND OPERATION_ID=? ORDER BY MODIFIED ASC";
 
-    public void saveLogInDatabase(OperationLogEntry operationLogEntry, DataSource dataSource) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement statement = connection.prepareStatement(INSERT_FILE_ATTRIBUTES_AND_CONTENT)) {
+    public SqlQuery<Integer> saveLogInDatabase(OperationLogEntry operationLogEntry) {
+        return (Connection connection) -> {
+            PreparedStatement statement = null;
+            try {
+                statement = connection.prepareStatement(INSERT_FILE_ATTRIBUTES_AND_CONTENT);
+                statement.setString(1, operationLogEntry.getId());
+                statement.setString(2, operationLogEntry.getSpace());
 
-            statement.setString(1, operationLogEntry.getId());
-            statement.setString(2, operationLogEntry.getSpace());
+                if (operationLogEntry.getNamespace() == null) {
+                    statement.setNull(3, Types.NULL);
+                } else {
+                    statement.setString(3, operationLogEntry.getNamespace());
+                }
 
-            if (operationLogEntry.getNamespace() == null) {
-                statement.setNull(3, Types.NULL);
-            } else {
-                statement.setString(3, operationLogEntry.getNamespace());
+                statement.setTimestamp(4, Timestamp.valueOf(operationLogEntry.getModified()));
+                statement.setString(5, operationLogEntry.getOperationId());
+                statement.setString(6, operationLogEntry.getOperationLog());
+                statement.setString(7, operationLogEntry.getOperationLogName());
+
+                return statement.executeUpdate();
+            } finally {
+                JdbcUtil.closeQuietly(statement);
             }
-
-            statement.setTimestamp(4, Timestamp.valueOf(operationLogEntry.getModified()));
-            statement.setString(5, operationLogEntry.getOperationId());
-            statement.setString(6, operationLogEntry.getOperationLog());
-            statement.setString(7, operationLogEntry.getOperationLogName());
-
-            statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new OperationLogStorageException(e.getMessage(), e.getCause());
-        }
+        };
     }
 
     public SqlQuery<List<OperationLogEntry>> getListFilesQueryBySpaceAndOperationId(String space, String operationId) {

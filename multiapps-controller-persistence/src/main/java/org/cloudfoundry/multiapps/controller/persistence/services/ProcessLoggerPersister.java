@@ -7,7 +7,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.sql.DataSource;
 
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableOperationLogEntry;
 import org.cloudfoundry.multiapps.controller.persistence.model.OperationLogEntry;
@@ -17,14 +16,12 @@ import org.springframework.scheduling.annotation.Async;
 public class ProcessLoggerPersister {
 
     private final ProcessLoggerProvider processLoggerProvider;
-    private final DataSource dataSource;
     private final ProcessLogsPersistenceService processLogsPersistenceService;
 
     @Inject
-    public ProcessLoggerPersister(ProcessLoggerProvider processLoggerProvider, DataSource dataSource,
+    public ProcessLoggerPersister(ProcessLoggerProvider processLoggerProvider,
                                   ProcessLogsPersistenceService processLogsPersistenceService) {
         this.processLoggerProvider = processLoggerProvider;
-        this.dataSource = dataSource;
         this.processLogsPersistenceService = processLogsPersistenceService;
     }
 
@@ -56,7 +53,7 @@ public class ProcessLoggerPersister {
                                                                             .withOperationLogName(processLogsMessage.getKey())
                                                                             .withOperationLog(processLogsMessage.toString())
                                                                             .withModified(LocalDateTime.now());
-            processLogsPersistenceService.persistLog(operationLogEntry, dataSource);
+            processLogsPersistenceService.persistLog(operationLogEntry);
         }
     }
 }

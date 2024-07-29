@@ -16,6 +16,7 @@ import org.cloudfoundry.multiapps.controller.client.lib.domain.ImmutableCloudSer
 import org.cloudfoundry.multiapps.controller.core.cf.CloudControllerClientProvider;
 import org.cloudfoundry.multiapps.controller.core.util.ApplicationConfiguration;
 import org.cloudfoundry.multiapps.controller.persistence.services.FileService;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerProvider;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogsPersistenceService;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
@@ -41,6 +42,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sap.cloudfoundry.client.facade.CloudControllerClient;
+
+import javax.inject.Inject;
 
 public abstract class SyncFlowableStepTest<T extends SyncFlowableStep> {
 
@@ -79,6 +82,8 @@ public abstract class SyncFlowableStepTest<T extends SyncFlowableStep> {
     protected FlowableFacade flowableFacadeFacade;
     @Mock
     protected ApplicationConfiguration configuration;
+    @Mock
+    private ProcessLoggerPersister processLoggerPersister;
     @Mock
     protected ProcessEngineConfiguration processEngineConfiguration;
     protected final ProcessLoggerProvider processLoggerProvider = Mockito.spy(ProcessLoggerProvider.class);

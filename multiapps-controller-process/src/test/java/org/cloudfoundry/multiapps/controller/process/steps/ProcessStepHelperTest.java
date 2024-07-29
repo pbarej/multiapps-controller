@@ -13,6 +13,7 @@ import org.cloudfoundry.multiapps.controller.core.model.ErrorType;
 import org.cloudfoundry.multiapps.controller.persistence.model.HistoricOperationEvent;
 import org.cloudfoundry.multiapps.controller.persistence.model.ImmutableHistoricOperationEvent;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLogger;
+import org.cloudfoundry.multiapps.controller.persistence.services.ProcessLoggerPersister;
 import org.cloudfoundry.multiapps.controller.persistence.services.ProgressMessageService;
 import org.cloudfoundry.multiapps.controller.process.Messages;
 import org.cloudfoundry.multiapps.controller.process.util.ProcessHelper;
@@ -42,6 +43,8 @@ class ProcessStepHelperTest {
     @Mock
     private ProgressMessageService progressMessageService;
     @Mock
+    private ProcessLoggerPersister processLoggerPersister;
+    @Mock
     private StepLogger stepLogger;
     @Mock
     private ProcessEngineConfiguration processEngineConfiguration;
@@ -64,6 +67,7 @@ class ProcessStepHelperTest {
                                                       .stepLogger(stepLogger)
                                                       .processEngineConfiguration(processEngineConfiguration)
                                                       .processHelper(processHelper)
+                                                      .processLoggerPersister(processLoggerPersister)
                                                       .build();
     }
 
