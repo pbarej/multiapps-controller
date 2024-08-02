@@ -30,7 +30,7 @@ public class PollStartAppExecutionWithRollback extends PollStartAppStatusExecuti
         CloudApplication oldApplication = incrementalAppInstanceUpdateConfiguration.getOldApplication();
         CloudControllerClient client = context.getControllerClient();
         context.getStepLogger()
-               .warn(Messages.SCALING_DOWN_NEW_APPLICATION_0_TO_1_INSTANCES, incrementalAppInstanceUpdateConfiguration.getNewApplication()
+               .warn(Messages.SCALING_DOWN_NEW_APPLICATION_0_TO_ONE_INSTANCES, incrementalAppInstanceUpdateConfiguration.getNewApplication()
                                                                                                                       .getName());
         client.updateApplicationInstances(incrementalAppInstanceUpdateConfiguration.getNewApplication()
                                                                                    .getName(),

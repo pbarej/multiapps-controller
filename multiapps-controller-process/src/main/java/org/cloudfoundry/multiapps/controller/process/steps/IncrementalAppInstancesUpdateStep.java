@@ -54,17 +54,7 @@ public class IncrementalAppInstancesUpdateStep extends TimeoutAsyncFlowableStep 
                                                                                                                  .newApplication(application)
                                                                                                                  .newApplicationInstanceCount(idleApplicationInstances.size());
         if (oldApplication == null) {
-            context.getStepLogger()
-                   .info(Messages.DUE_TO_MISSING_PRODUCTIVE_DEPLOYED_APPLICATION_OF_MODULE_0_THE_NEW_APPLICATION_WILL_BE_SCALED_IN_STANDARD_WAY,
-                         application.getModuleName());
-            client.updateApplicationInstances(application.getName(), application.getInstances());
-            incrementalAppInstanceUpdateConfigurationBuilder = ImmutableIncrementalAppInstanceUpdateConfiguration.builder()
-                                                                                                                 .newApplication(application)
-                                                                                                                 .newApplicationInstanceCount(application.getInstances());
-            context.setVariable(Variables.INCREMENTAL_APP_INSTANCE_UPDATE_CONFIGURATION,
-                                incrementalAppInstanceUpdateConfigurationBuilder.build());
-            context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 1);
-            return StepPhase.POLL;
+            return scaleUpNewAppToTheRequiredInstances(context, application, client);
         }
         int oldApplicationInstanceCount = client.getApplicationInstances(oldApplication)
                                                 .getInstances()
@@ -74,29 +64,23 @@ public class IncrementalAppInstancesUpdateStep extends TimeoutAsyncFlowableStep 
                                                         .oldApplicationInstanceCount(oldApplicationInstanceCount);
         context.setVariable(Variables.INCREMENTAL_APP_INSTANCE_UPDATE_CONFIGURATION,
                             incrementalAppInstanceUpdateConfigurationBuilder.build());
-        if (idleApplicationInstances.size() >= application.getInstances()) {
-            context.getStepLogger()
-                   .info(Messages.APPLICATION_0_ALREADY_SCALED_TO_THE_DESIRED_1_INSTANCES, application.getName(),
-                         application.getInstances());
-            return StepPhase.DONE;
-        }
-        return StepPhase.POLL;
+        return checkWhetherNewAppIsAlreadyScaled(context, idleApplicationInstances, application);
     }
 
-    private void checkWhetherLiveAppNeedsPolling(ProcessContext context, CloudControllerClient client, CloudApplication cloudApplication) {
-        context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 2);
-        if (cloudApplication == null) {
-            return;
-        }
-        List<InstanceInfo> appInstances = client.getApplicationInstances(cloudApplication)
-                                                .getInstances();
-        if (!appInstances.stream()
-                         .allMatch(instanceInfo -> instanceInfo.getState() == InstanceState.RUNNING)) {
-            context.getStepLogger()
-                   .debug(Messages.NOT_ALL_OF_THE_APPLICATION_0_INSTANCES_ARE_RUNNING_WAITING_FOR_ALL_INSTANCES_TO_START,
-                          cloudApplication.getName());
-            context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 0);
-        }
+    private StepPhase scaleUpNewAppToTheRequiredInstances(ProcessContext context, CloudApplicationExtended application,
+                                                          CloudControllerClient client) {
+        ImmutableIncrementalAppInstanceUpdateConfiguration.Builder incrementalAppInstanceUpdateConfigurationBuilder;
+        context.getStepLogger()
+               .info(Messages.DUE_TO_MISSING_PRODUCTIVE_DEPLOYED_APPLICATION_OF_MODULE_0_THE_NEW_APPLICATION_WILL_BE_SCALED_IN_STANDARD_WAY,
+                     application.getModuleName());
+        client.updateApplicationInstances(application.getName(), application.getInstances());
+        incrementalAppInstanceUpdateConfigurationBuilder = ImmutableIncrementalAppInstanceUpdateConfiguration.builder()
+                                                                                                             .newApplication(application)
+                                                                                                             .newApplicationInstanceCount(application.getInstances());
+        context.setVariable(Variables.INCREMENTAL_APP_INSTANCE_UPDATE_CONFIGURATION,
+                            incrementalAppInstanceUpdateConfigurationBuilder.build());
+        context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 1);
+        return StepPhase.POLL;
     }
 
     private DeployedMtaApplication getOldApplication(ProcessContext context, CloudApplicationExtended currentApplication) {
@@ -126,6 +110,33 @@ public class IncrementalAppInstancesUpdateStep extends TimeoutAsyncFlowableStep 
             return null;
         }
         return deployedMtaApplication;
+    }
+
+    private void checkWhetherLiveAppNeedsPolling(ProcessContext context, CloudControllerClient client, CloudApplication cloudApplication) {
+        context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 2);
+        if (cloudApplication == null) {
+            return;
+        }
+        List<InstanceInfo> appInstances = client.getApplicationInstances(cloudApplication)
+                                                .getInstances();
+        if (!appInstances.stream()
+                         .allMatch(instanceInfo -> instanceInfo.getState() == InstanceState.RUNNING)) {
+            context.getStepLogger()
+                   .debug(Messages.NOT_ALL_OF_THE_APPLICATION_0_INSTANCES_ARE_RUNNING_WAITING_FOR_ALL_INSTANCES_TO_START,
+                          cloudApplication.getName());
+            context.setVariable(Variables.ASYNC_STEP_EXECUTION_INDEX, 0);
+        }
+    }
+
+    private StepPhase checkWhetherNewAppIsAlreadyScaled(ProcessContext context, List<InstanceInfo> idleApplicationInstances,
+                                                        CloudApplicationExtended application) {
+        if (idleApplicationInstances.size() >= application.getInstances()) {
+            context.getStepLogger()
+                   .info(Messages.APPLICATION_0_ALREADY_SCALED_TO_THE_DESIRED_1_INSTANCES, application.getName(),
+                         application.getInstances());
+            return StepPhase.DONE;
+        }
+        return StepPhase.POLL;
     }
 
     @Override

@@ -208,7 +208,7 @@ public class Messages {
     public static final String COULD_NOT_UPDATE_PARAMETERS_SERVICE = "Could not update parameters of service \"{0}\" : {1}";
     public static final String COULD_NOT_UPDATE_PLAN_SERVICE = "Could not update plan of service \"{0}\" : {1}";
     public static final String COULD_NOT_UPDATE_SYSLOG_DRAIN_URL_SERVICE = "Could not update syslog drain url of service \"{0}\" : {1}";
-    public static final String SCALING_DOWN_NEW_APPLICATION_0_TO_1_INSTANCES = "Scaling down new application: \"{0}\" to 1 instances";
+    public static final String SCALING_DOWN_NEW_APPLICATION_0_TO_ONE_INSTANCES = "Scaling down new application: \"{0}\" to 1 instances";
 
     public static final String COULD_NOT_GET_SERVICE_KEYS_FOR_OPTIONAL_SERVICE = "Could not get service keys for optional service \"{0}\"";
     public static final String DEFAULT_FAILED_OPERATION_DESCRIPTION = "The service broker returned an error with no description!";
